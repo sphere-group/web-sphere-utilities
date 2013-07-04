@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang='en'>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>sphere::format tester</title>
+<script type="text/javascript" src='jquery.js'></script>
+<script type="text/javascript" src='ncanvas.js'></script>
+<script type="text/javascript" src='rpg.util.js'></script>
+<script type="text/javascript" src='rpg.windowstyle.js'></script>
+<style type="text/css">
+.sph-ws	{position:relative;}
+.sph-ws div	{position:relative;}
+.sph-ws canvas	{position:relative; z-index:1;}
+.sph-ws canvas.sph-ws-0	{position:relative;}
+.sph-ws canvas.sph-ws-1	{position:relative;}
+.sph-ws canvas.sph-ws-2	{position:relative;}
+.sph-ws canvas.sph-ws-3	{position:relative; right:0;}
+.sph-ws canvas.sph-ws-4	{position:absolute; bottom:0; right:0;}
+.sph-ws canvas.sph-ws-5	{position:relative; bottom:0;}
+.sph-ws canvas.sph-ws-6	{position:absolute; bottom:0; left:0;}
+.sph-ws canvas.sph-ws-7	{position:absolute; left:0;}
+.sph-ws canvas.sph-ws-8	{position:absolute; z-index:0;}
+</style>
+</head>
+<body>
+<canvas id="rws"></canvas>
+<div id="sandbox"></div>
+<div id="msg"></div>
+<script type="text/javascript">/* <![CDATA[ */
+$(function(){
+	var c = ncanvas('rws');
+	c.plot(3,16,"black");
+	$.get("sample/blue.rws").done(function(d){
+		alert("Loaded "+d.length+" byte(s)");
+		var ws = Sphere.WindowStyle(d);
+		if (ws!==null) {
+			$("#msg").text("Loaded windowstyle v"+ws.header.version);
+			var _r = [0,0,0,1,2,2,2,1,1];
+			var _ct = ["","",""], i, _c, _id;
+			for (i=0;i<9;++i) _ct[_r[i]] += "<canvas class='sph-ws-"+i+"' id='ws-"+i+"'></canvas>";
+			var _w = Math.max(ws.bitmaps[0].width,ws.bitmaps[6].width,ws.bitmaps[7].width)+
+				Math.max(ws.bitmaps[1].width,ws.bitmaps[5].width)+
+				Math.max(ws.bitmaps[2].width,ws.bitmaps[3].width,ws.bitmaps[4].width),
+				_h = Math.max(ws.bitmaps[0].height,ws.bitmaps[1].height,ws.bitmaps[2].height)+
+				Math.max(ws.bitmaps[3].height,ws.bitmaps[7].height)+
+				Math.max(ws.bitmaps[4].height,ws.bitmaps[5].height,ws.bitmaps[6].height);
+			_ct = '<div class="sph-ws"><div>'+_ct.join("</div><div>")+'</div></div>';
+			$("#sandbox").append($(_ct).css({"width":_w+"px","height":_h+"px"})).css({"background":"#e0e0e0"});
+			for (i=0;i<9;++i) {
+				_id = "ws-"+i;
+				$("#"+_id).attr({
+					"width":ws.bitmaps[i].width,
+					"height":ws.bitmaps[i].height
+				});
+				_c = ncanvas(_id);
+				if (_c) {
+					_c.clear();
+					//_c.fillRect(0,0,ws.bitmaps[i].width,ws.bitmaps[i].height,"#000000");
+					ws.bitmaps[i].blit(_c);
+				}
+				else console.log("Couldn't get canvas");
+			}
+		}
+	});
+});
+/* ]]> */</script>
+</body></html>

@@ -1,7 +1,7 @@
 var Sphere = {};
 
 Sphere.util = {
-	"parseLE":function(d){var r=0,i=-1;while(++i<d.length)r+=(d.charCodeAt(i)<<i);return r;}
+	"parseLE":function(d){var r=0,i=-1;while(++i<d.length)r+=(d.charCodeAt(i)<<(8*i));return r;}
 };
 
 Sphere.color = function(r,g,b,a) {

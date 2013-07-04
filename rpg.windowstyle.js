@@ -2,11 +2,8 @@
 RPG Window Style Format
 Chad Austin et al.
 7.16.03
-****/
 
-Sphere.WindowStyle = function(d) {
-	var _ret = null;
-/****
+
 ---- 64 byte header ----
 
 byte signature[4];     // must be ".rws"
@@ -17,6 +14,41 @@ RGBA corner_colors[4]; // upper left, upper right, lower left, lower right
 byte edge_offsets[4]; // left, top, right, bottom
 byte reserved[36];
 ****/
+/****
+---- Version 1 ----
+
+The rest of the file contains nine bitmaps.  Each bitmap is edge_width * edge_width
+pixels.  The order of the bitmaps are as follows:
+
+upper-left
+top
+upper-right
+right
+lower-right
+bottom
+lower-left
+left
+background
+****/
+/****
+---- Version 2 ----
+
+The rest of the file contains nine bitmaps.  The first and second words are the width
+and height, respectively.  The rest of the bitmap is width*height RGBA pixels.
+
+The bitmaps are in the same order as version 1.
+
+---- Version 2.1 ----
+
+The new edge_offsets array allows the user to specify an amount (in pixels) by which to
+expand the background section of a window style. This way you can have the background
+displayed under the edge bitmaps, for better looking windowstyles.
+
+Also, two new background modes are supported: TILED_GRADIENT (tiled background with
+gradient on top), and STRETCHED_GRADIENT (stretched background with gradient on top).
+****/
+Sphere.WindowStyle = function(d) {
+	var _ret = null;
 	var _hdr = {
 		"signature":".rws",
 		"version":0,
@@ -31,7 +63,7 @@ byte reserved[36];
 		_hdr.edgeWidth = d.charCodeAt(6);
 		_hdr.backgroundMode = d.charCodeAt(7);
 		var p = 8;
-		var i = 0, _tmp; while (i<4) {
+		var i = 0; while (i<4) {
 			_hdr.cornerColors[i] = Sphere.color(d.charCodeAt(p++),d.charCodeAt(p++),d.charCodeAt(p++),d.charCodeAt(p++));
 			++i;
 		}
@@ -83,37 +115,3 @@ byte reserved[36];
 	else console.log("Couldn't create windowstyle from data");
 	return _ret;
 };
-
-/****
----- Version 2 ----
-
-The rest of the file contains nine bitmaps.  The first and second words are the width
-and height, respectively.  The rest of the bitmap is width*height RGBA pixels.
-
-The bitmaps are in the same order as version 1.
-
----- Version 2.1 ----
-
-The new edge_offsets array allows the user to specify an amount (in pixels) by which to
-expand the background section of a window style. This way you can have the background
-displayed under the edge bitmaps, for better looking windowstyles.
-
-Also, two new background modes are supported: TILED_GRADIENT (tiled background with
-gradient on top), and STRETCHED_GRADIENT (stretched background with gradient on top).
-****/
-/****
----- Version 1 ----
-
-The rest of the file contains nine bitmaps.  Each bitmap is edge_width * edge_width
-pixels.  The order of the bitmaps are as follows:
-
-upper-left
-top
-upper-right
-right
-lower-right
-bottom
-lower-left
-left
-background
-****/

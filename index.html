@@ -8,6 +8,7 @@
 <script type="text/javascript" src='ncanvas.js'></script>
 <script type="text/javascript" src='rpg.util.js'></script>
 <script type="text/javascript" src='rpg.windowstyle.js'></script>
+<script type="text/javascript" src='rpg.font.js'></script>
 <style type="text/css">
 .sph-ws	{position:relative;}
 .sph-ws div	{position:relative;}
@@ -24,18 +25,20 @@
 </style>
 </head>
 <body>
-<canvas id="rws"></canvas>
-<div id="sandbox"></div>
-<div id="msg"></div>
+<canvas id="test"></canvas>
+<div id="sandbox-rws"></div>
+<div id="msg-rws"></div>
+<div id="sandbox-rfn"></div>
+<div id="msg-rfn"></div>
 <script type="text/javascript">/* <![CDATA[ */
 $(function(){
-	var c = ncanvas('rws');
+	var c = ncanvas('test');
 	c.plot(3,16,"black");
 	$.get("sample/blue.rws").done(function(d){
-		alert("Loaded "+d.length+" byte(s)");
+		alert("Loaded windowstyle "+d.length+" byte(s)");
 		var ws = Sphere.WindowStyle(d);
 		if (ws!==null) {
-			$("#msg").text("Loaded windowstyle v"+ws.header.version);
+			$("#msg-rws").text("Loaded windowstyle v"+ws.header.version);
 			var _r = [0,0,0,1,2,2,2,1,1];
 			var _ct = ["","",""], i, _c, _id;
 			for (i=0;i<9;++i) _ct[_r[i]] += "<canvas class='sph-ws-"+i+"' id='ws-"+i+"'></canvas>";
@@ -46,7 +49,7 @@ $(function(){
 				Math.max(ws.bitmaps[3].height,ws.bitmaps[7].height)+
 				Math.max(ws.bitmaps[4].height,ws.bitmaps[5].height,ws.bitmaps[6].height);
 			_ct = '<div class="sph-ws"><div>'+_ct.join("</div><div>")+'</div></div>';
-			$("#sandbox").append($(_ct).css({"width":_w+"px","height":_h+"px"})).css({"background":"#e0e0e0"});
+			$("#sandbox-rws").append($(_ct).css({"width":_w+"px","height":_h+"px"})).css({"background":"#e0e0e0"});
 			for (i=0;i<9;++i) {
 				_id = "ws-"+i;
 				$("#"+_id).attr({
@@ -59,8 +62,35 @@ $(function(){
 					//_c.fillRect(0,0,ws.bitmaps[i].width,ws.bitmaps[i].height,"#000000");
 					ws.bitmaps[i].blit(_c);
 				}
-				else console.log("Couldn't get canvas");
+				else console.log("Couldn't get a canvas for windowstyle piece #"+i);
 			}
+		}
+		else {
+			$("#msg-rws").text("Couldn't load windowstyle");
+		}
+	});
+	$.get("sample/trigger.rfn").done(function(d){
+		alert("Loaded font "+d.length+" byte(s)");
+		var rfn = Sphere.Font(d);
+		if (rfn!==null) {
+			$("#msg-rfn").text("Loaded font v"+rfn.header.version+" - "+rfn.header.numChars+" char(s)");
+			var _ct = "", i, _c, _id; for (i=0;i<rfn.header.numChars;++i) {
+				_ct += "<canvas class='sph-rfn-"+i+"' id='rfn-"+i+"' width='"+rfn.bitmaps[i].width+"' height='"+rfn.bitmaps[i].height+"'></canvas>";
+			}
+			_ct = '<div class="sph-rfn">'+_ct+'</div>';
+			$("#sandbox-rfn").append($(_ct)).css({"background":"#e0e0e0"});
+			for (i=0;i<rfn.header.numChars;++i) {
+				_id = "rfn-"+i;
+				_c = ncanvas(_id);
+				if (_c) {
+					_c.clear();
+					rfn.bitmaps[i].blit(_c);
+				}
+				else console.log("Couldn't get a canvas for font char #"+i);
+			}
+		}
+		else {
+			$("#msg-rfn").text("Loaded font v"+rfn.header.version);
 		}
 	});
 });

@@ -39,12 +39,13 @@ Sphere.Font = function(d) {
 		_hdr.numChars = Sphere.util.parseLE(d.substr(6,2));
 		var p = 256, i;
 		var _bmp = [];
-		var w, h, q, z, r;
-		console.log("Sphere::Font","version",_hdr.version,"#ch",_hdr.numChars);
+		var w, h, q, z, r, _height = 0;
+		//console.log("Sphere::Font","version",_hdr.version,"#ch",_hdr.numChars);
 		if (_hdr.version>1) {
 			i = _hdr.numChars; q = -1; while (--i>-1) {
 				w = Sphere.util.parseLE(d.substr(p,2));
 				h = Sphere.util.parseLE(d.substr(p+2,2));
+				if (h>_height) _height = h;
 				r = d.substr(p+4,28);
 				p += 32;
 				_bmp[++q] = {
@@ -54,9 +55,11 @@ Sphere.Font = function(d) {
 					"reserved":r,
 					"blit":function(c){
 						var w = this.width, h = this.height;
+						var y = arguments.length>2?arguments[2]:0,
+							x = arguments.length>1?arguments[1]:0;
 						var i = 0, _h = 0; if (c) while (i<this.data.length) {
 							if (i>1&&(i%w)===0) ++_h;
-							c.plot(i%w, _h, this.data[i].toString());
+							c.plot(x+i%w, y+_h, this.data[i].toString());
 							//console.log(i%w,_h,this.data[i].toString());
 							++i;
 						}
@@ -73,8 +76,20 @@ Sphere.Font = function(d) {
 		_ret = {
 			"header":_hdr,
 			"bitmaps":_bmp,
-			"drawText":function(c,x,y){
-				console.log("Sphere::Font.drawText - not yet implemented");
+			"getHeight":function(){return _height;},
+			"getStringWidth":function(msg){
+				var w = 0, i = msg.length;
+				while (--i>-1) w += _bmp[msg.charCodeAt(i)].width;
+				return w;
+			},
+			"drawText":function(c,x,y,msg){
+				//console.log("Sphere::Font.drawText - not yet implemented");
+				var _x = x, _y = y;
+				var i, ch; for (i=0; i<msg.length; ++i) {
+					ch = msg.charCodeAt(i);
+					_bmp[ch].blit(c,_x,_y);
+					_x += _bmp[ch].width;
+				}
 			}
 		};
 	}

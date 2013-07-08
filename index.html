@@ -10,48 +10,86 @@
 <script type="text/javascript" src='rpg.windowstyle.js'></script>
 <script type="text/javascript" src='rpg.font.js'></script>
 <style type="text/css">
+.sph-cf:before,
+.sph-cf:after {
+    content: " "; /* 1 */
+    display: table; /* 2 */
+}
+
+.sph-cf:after {
+    clear: both;
+}
+
+/*
+ * For IE 6/7 only
+ * Include this rule to trigger hasLayout and contain floats.
+ */
+
+.sph-cf {
+    *zoom: 1;
+}
+
+.sandbox	{background:#000; color:#fff;}
 .sph-ws	{position:relative;}
-.sph-ws div	{position:relative;}
+.sph-ws div	{position:relative; float:left;}
 .sph-ws canvas	{position:relative; z-index:1;}
-.sph-ws canvas.sph-ws-0	{position:relative;}
-.sph-ws canvas.sph-ws-1	{position:relative;}
+.sph-ws canvas.sph-ws-0	{position:absolute;}
+/*.sph-ws canvas.sph-ws-1	{position:relative;}
 .sph-ws canvas.sph-ws-2	{position:relative;}
 .sph-ws canvas.sph-ws-3	{position:relative; right:0;}
 .sph-ws canvas.sph-ws-4	{position:absolute; bottom:0; right:0;}
-.sph-ws canvas.sph-ws-5	{position:relative; bottom:0;}
-.sph-ws canvas.sph-ws-6	{position:absolute; bottom:0; left:0;}
-.sph-ws canvas.sph-ws-7	{position:absolute; left:0;}
-.sph-ws canvas.sph-ws-8	{position:absolute; z-index:0;}
+.sph-ws canvas.sph-ws-5	{position:relative; bottom:0;}*/
+.sph-ws canvas.sph-ws-6	{position:absolute; bottom:0;}
+.sph-ws canvas.sph-ws-7	{position:relative;}
+/*.sph-ws canvas.sph-ws-8	{position:absolute; z-index:0;}*/
 </style>
 </head>
 <body>
 <canvas id="test"></canvas>
-<div id="sandbox-rws"></div>
+<div class="sandbox" id="sandbox-rws"></div>
 <div id="msg-rws"></div>
-<div id="sandbox-rfn"></div>
+<div class="sandbox" id="sandbox-rfn"></div>
 <div id="msg-rfn"></div>
 <script type="text/javascript">/* <![CDATA[ */
 $(function(){
 	var c = ncanvas('test');
 	c.plot(3,16,"black");
-	$.get("sample/blue.rws").done(function(d){
-		alert("Loaded windowstyle "+d.length+" byte(s)");
+	var smp = {
+		"rws":"sample/blue.rws",
+		"rfn":"sample/trigger.rfn"
+	};
+	$.get(smp.rws).done(function(d){
+		if (!d) alert("Couldn't get windowstyle file "+smp.rws);
 		var ws = Sphere.WindowStyle(d);
 		if (ws!==null) {
 			$("#msg-rws").text("Loaded windowstyle v"+ws.header.version);
-			var _r = [0,0,0,1,2,2,2,1,1];
-			var _ct = ["","",""], i, _c, _id;
-			for (i=0;i<9;++i) _ct[_r[i]] += "<canvas class='sph-ws-"+i+"' id='ws-"+i+"'></canvas>";
+			var _r = [0,1,2,2,2,1,0,0,1],
+				_m = [
+					"top","marginTop","marginTop",
+					"marginRight","marginRight","marginTop",
+					"bottom","height","marginTop"
+				],
+				_mv = [
+					"height","height","height",
+					"width","width","height",
+					"height","height","height"
+				];
+			var _ct = ["","",""], i, _c, _id, _css;
+			/*for (i=0;i<9;++i) _ct[_r[i]] += "<canvas class='sph-ws-"+i+"' id='ws-"+i+"'></canvas>";
 			var _w = Math.max(ws.bitmaps[0].width,ws.bitmaps[6].width,ws.bitmaps[7].width)+
 				Math.max(ws.bitmaps[1].width,ws.bitmaps[5].width)+
 				Math.max(ws.bitmaps[2].width,ws.bitmaps[3].width,ws.bitmaps[4].width),
 				_h = Math.max(ws.bitmaps[0].height,ws.bitmaps[1].height,ws.bitmaps[2].height)+
 				Math.max(ws.bitmaps[3].height,ws.bitmaps[7].height)+
 				Math.max(ws.bitmaps[4].height,ws.bitmaps[5].height,ws.bitmaps[6].height);
-			_ct = '<div class="sph-ws"><div>'+_ct.join("</div><div>")+'</div></div>';
-			$("#sandbox-rws").append($(_ct).css({"width":_w+"px","height":_h+"px"})).css({"background":"#e0e0e0"});
+			_ct = '<div class="sph-ws sph-cf"><div>'+_ct.join("</div><div>")+'</div></div>';
+			$("#sandbox-rws").append($(_ct).css({"width":_w+"px","height":_h+"px"}));
 			for (i=0;i<9;++i) {
 				_id = "ws-"+i;
+				_css = {};
+				_css[_m[i]] = (_mv[i]==="height"||_mv[i]==="width")?
+					ws.bitmaps[i][_mv[i]]:
+					"-"+ws.bitmaps[i][_mv[i]]+"px";
 				$("#"+_id).attr({
 					"width":ws.bitmaps[i].width,
 					"height":ws.bitmaps[i].height
@@ -63,14 +101,19 @@ $(function(){
 					ws.bitmaps[i].blit(_c);
 				}
 				else console.log("Couldn't get a canvas for windowstyle piece #"+i);
+			}*/
+			$("#sandbox-rws").append($("<canvas class='sph-rws-win' id='rws-win' width='400' height='300'></canvas>"));
+			_c = ncanvas("rws-win");
+			if (_c) {
+				ws.drawWindow(_c,24,24,301,201);
 			}
 		}
 		else {
 			$("#msg-rws").text("Couldn't load windowstyle");
 		}
 	});
-	$.get("sample/trigger.rfn").done(function(d){
-		alert("Loaded font "+d.length+" byte(s)");
+	$.get(smp.rfn).done(function(d){
+		if (!d) alert("Couldn't get font file "+smp.rfn);
 		var rfn = Sphere.Font(d);
 		if (rfn!==null) {
 			$("#msg-rfn").text("Loaded font v"+rfn.header.version+" - "+rfn.header.numChars+" char(s)");
@@ -78,7 +121,7 @@ $(function(){
 				_ct += "<canvas class='sph-rfn-"+i+"' id='rfn-"+i+"' width='"+rfn.bitmaps[i].width+"' height='"+rfn.bitmaps[i].height+"'></canvas>";
 			}
 			_ct = '<div class="sph-rfn">'+_ct+'</div>';
-			$("#sandbox-rfn").append($(_ct)).css({"background":"#e0e0e0"});
+			$("#sandbox-rfn").append($(_ct));
 			for (i=0;i<rfn.header.numChars;++i) {
 				_id = "rfn-"+i;
 				_c = ncanvas(_id);
@@ -87,6 +130,14 @@ $(function(){
 					rfn.bitmaps[i].blit(_c);
 				}
 				else console.log("Couldn't get a canvas for font char #"+i);
+			}
+			$("#sandbox-rfn").append($("<canvas class='sph-rfn-txt' id='rfn-txt' height='"+rfn.getHeight()+"'></canvas>"));
+			_c = ncanvas("rfn-txt");
+			if (_c) {
+				var _tx = "What a beautiful day for laundry!";
+				_c.width = rfn.getStringWidth(_tx);
+				rfn.drawText(_c,0,0, _tx);
+				$("#rfn-txt").attr("title",_tx);
 			}
 		}
 		else {

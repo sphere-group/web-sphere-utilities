@@ -88,13 +88,30 @@ Sphere.WindowStyle = function(d) {
 					"data":[],
 					"blit":function(c){
 						var w = this.width, h = this.height;
+						var y = arguments.length>2?arguments[2]:0,
+							x = arguments.length>1?arguments[1]:0;
+						var _z = arguments.length>4?y+arguments[4]:y+h,
+							_q = arguments.length>3?x+arguments[3]:x+w;
 						var i = 0, _h = 0; if (c) while (i<this.data.length) {
 							if (i>1&&(i%w)===0) ++_h;
-							c.plot(i%w, _h, this.data[i].toString());
-							//console.log(i%w,_h,this.data[i].toString());
+							if ((x+i%w)<_q&&(y+_h)<_z)
+								c.plot(x+i%w, y+_h, this.data[i].toString());
 							++i;
 						}
 						else console.log("Sphere::WindowStyle.blitSection - Couldn't blit "+w+"*"+h+" canvas");
+					},
+					"blitRepeat":function(c,x,y,w,h){
+						//console.log("Sphere::WindowStyle.blitSectionRepeat",x,y,w,h);
+						var _x = x, _y = y, _w = w, _h = h; if (c) while (_y<y+h) {
+							this.blit(c,_x,_y,_w,_h);
+							//c.plot(_x,_y,"#ffffff");
+							_x += this.width; _w -= this.width;
+							if (_x>=w) {
+								_y += this.height; _h -= this.height;
+								_x = x; _w = w;
+							}
+						}
+						else console.log("Sphere::WindowStyle.blitSectionRepeat - Couldn't blit "+w+"*"+h+" canvas");
 					}
 				};
 				z = w*h; while(--z>-1) {
@@ -107,8 +124,18 @@ Sphere.WindowStyle = function(d) {
 		_ret = {
 			"header":_hdr,
 			"bitmaps":_bmp,
-			"blit":function(c,x,y,w,h){
-				console.log("Sphere::WindowStyle.blit - not yet implemented");
+			"drawWindow":function(c,x,y,w,h){
+				//console.log("Sphere::WindowStyle.blit - not yet implemented");
+				var _x = x+w, _y = y+h;
+				_bmp[8].blitRepeat(c,x,y,w,h);	// background
+				_bmp[0].blit(c,x-_bmp[0].width,y-_bmp[0].height);
+				_bmp[1].blitRepeat(c,x,y-_bmp[1].height,w,_bmp[1].height);
+				_bmp[2].blit(c,_x,y-_bmp[0].height);
+				_bmp[3].blitRepeat(c,_x,y,_bmp[3].width,h);
+				_bmp[7].blitRepeat(c,x-_bmp[7].width,y,_bmp[7].width,h);
+				_bmp[6].blit(c,x-_bmp[6].width,_y);
+				_bmp[5].blitRepeat(c,x,_y,w,_bmp[5].height);
+				_bmp[4].blit(c,_x,_y);
 			}
 		};
 	}

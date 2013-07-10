@@ -7,6 +7,7 @@ function ncanvas(id) {
 		function _blit(q){return function(src,px,py){q.drawImage(src,px,py);};}
 		var _c = c.getContext('2d');
 		var ret = {
+			get id(){return id;},
 			"clear":_clear,
 			"fillRect":_fill(_c),
 			"plot":_plot(_c),

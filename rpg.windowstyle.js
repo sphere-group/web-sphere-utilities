@@ -86,20 +86,7 @@ Sphere.WindowStyle = function(d) {
 					"width":w,
 					"height":h,
 					"data":[],
-					"blit":function(c){
-						var w = this.width, h = this.height;
-						var y = arguments.length>2?arguments[2]:0,
-							x = arguments.length>1?arguments[1]:0;
-						var _z = arguments.length>4?y+arguments[4]:y+h,
-							_q = arguments.length>3?x+arguments[3]:x+w;
-						var i = 0, _h = 0; if (c) while (i<this.data.length) {
-							if (i>1&&(i%w)===0) ++_h;
-							if ((x+i%w)<_q&&(y+_h)<_z)
-								c.plot(x+i%w, y+_h, this.data[i].toString());
-							++i;
-						}
-						else console.log("Sphere::WindowStyle.blitSection - Couldn't blit "+w+"*"+h+" canvas");
-					},
+					"blit":Sphere.util.blitRGBA,
 					"blitRepeat":function(c,x,y,w,h){
 						//console.log("Sphere::WindowStyle.blitSectionRepeat",x,y,w,h);
 						var _x = x, _y = y, _w = w, _h = h; if (c) while (_y<y+h) {
@@ -114,9 +101,11 @@ Sphere.WindowStyle = function(d) {
 						else console.log("Sphere::WindowStyle.blitSectionRepeat - Couldn't blit "+w+"*"+h+" canvas");
 					}
 				};
-				z = w*h; while(--z>-1) {
+				_bmp[q].data = Sphere.util.parseBitmap(d.substr(p,(w*h)<<2));
+				p += (w*h)<<2;
+				/*z = w*h; while(--z>-1) {
 					_bmp[q].data.push(Sphere.color(d.charCodeAt(p++),d.charCodeAt(p++),d.charCodeAt(p++),d.charCodeAt(p++)));
-				}
+				}*/
 			}
 		}
 		else {

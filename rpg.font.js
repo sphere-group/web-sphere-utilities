@@ -53,22 +53,13 @@ Sphere.Font = function(d) {
 					"height":h,
 					"data":[],
 					"reserved":r,
-					"blit":function(c){
-						var w = this.width, h = this.height;
-						var y = arguments.length>2?arguments[2]:0,
-							x = arguments.length>1?arguments[1]:0;
-						var i = 0, _h = 0; if (c) while (i<this.data.length) {
-							if (i>1&&(i%w)===0) ++_h;
-							c.plot(x+i%w, y+_h, this.data[i].toString());
-							//console.log(i%w,_h,this.data[i].toString());
-							++i;
-						}
-						else console.log("Sphere::Font.blitCharacter - Couldn't blit "+w+"*"+h+" canvas");
-					}
+					"blit":Sphere.util.blitRGBA,
 				};
-				z = w*h; while(--z>-1) {
+				_bmp[q].data = Sphere.util.parseBitmap(d.substr(p,(w*h)<<2));
+				p += (w*h)<<2;
+				/*z = w*h; while(--z>-1) {
 					_bmp[q].data.push(Sphere.color(d.charCodeAt(p++),d.charCodeAt(p++),d.charCodeAt(p++),d.charCodeAt(p++)));
-				}
+				}*/
 			}
 		}
 		else {

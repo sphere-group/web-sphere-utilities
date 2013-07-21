@@ -10,6 +10,8 @@
 <script type="text/javascript" src='rpg.windowstyle.js'></script>
 <script type="text/javascript" src='rpg.font.js'></script>
 <script type="text/javascript" src='rpg.spriteset.js'></script>
+<script type="text/javascript" src='rpg.tileset.js'></script>
+<script type="text/javascript" src='rpg.map.js'></script>
 <style type="text/css">
 .sph-cf:before,
 .sph-cf:after {
@@ -31,6 +33,17 @@
 }
 
 .sandbox	{background:#000; color:#fff;}
+
+.sph-rts canvas	{position:relative; z-index:1;}
+.sph-rts-anim	{position:relative;}
+.sph-rts-anim:after	{
+	display:inline-block; height:8px; width:8px;
+	position:absolute; right:0px; top:0px; z-index:99;
+	line-height:1; font-size:8px; font-weight:bold; color:#fff; text-shadow:-1px 1px #888;
+	content:"A"; opacity:0.5;
+}
+.sph-rts-anim:hover:after	{opacity:1.0;}
+
 .sph-ws	{position:relative;}
 .sph-ws div	{position:relative; float:left;}
 .sph-ws canvas	{position:relative; z-index:1;}
@@ -46,6 +59,9 @@
 </style>
 </head>
 <body>
+<header>
+<h1>Sphere Format Loader</h1>
+</header>
 <section>
 <canvas id="test" width="320" height="240"></canvas>
 </section>
@@ -62,8 +78,18 @@
 <div id="msg-rss"></div>
 </section>
 <section>
-<h1>Sphere Format Loader</h1>
 <p>Above should show a window, a font, and a spriteset.</p>
+</section>
+<section id="s-rts">
+<div class="sandbox" id="sandbox-rts"></div>
+<div id="msg-rts"></div>
+</section>
+<section id="s-rmp">
+<div class="sandbox" id="sandbox-rmp"></div>
+<div id="msg-rmp"></div>
+</section>
+<section>
+<p>Above should show a tileset and a map.</p>
 </section>
 <script type="text/javascript">/* <![CDATA[ */
 $(function(){
@@ -72,7 +98,10 @@ $(function(){
 	var smp = {
 		"rws":"sample/blue.rws",
 		"rfn":"sample/trigger.rfn",
-		"rss":"sample/artyxx-r.rss"
+		//"rss":"sample/artyxx-r.rss"
+		"rss":"sample/bluelink.rss",
+		"rts":"sample/aldat.rts",
+		"rmp":"sample/fireRoom.rmp"
 	};
 	$.ajaxSetup({
 		"accepts":{"binary":"text/plain; charset=x-user-defined"},
@@ -91,6 +120,68 @@ $(function(){
 			}
 		});
 	}
+	if (Sphere.Tileset&&"rts" in smp) loadAsBinary(smp.rts).done(function(d){
+		if (!d) alert("Couldn't get tileset file "+smp.rts);
+		var rts = Sphere.Tileset(d);
+		if (rts!==null) {
+			$("#msg-rts").text("Loaded tileset v"+rts.header.version+" - "+rts.header.numTiles+" tile(s) of size "+rts.header.tile.width+"*"+rts.header.tile.height+" at "+rts.header.tile.bpp+"bpp ("+(rts.header.compression?"":"no ")+"compression)");
+			var _ct = "", cl, i, _c, _id, tmp; for (i=0;i<rts.header.numTiles;++i) {
+				cl = "sph-rts-"+i;
+				tmp = "<"+"canvas "+(rts.bitmaps[i].info.isAnimated?'data-last="0" data-next="'+rts.bitmaps[i].info.nextTile+'" data-delay="'+rts.bitmaps[i].info.delay+'"':'')+" title='"+rts.bitmaps[i].info.name+"' class='"+cl+"' id='rts-"+i+"' width='"+rts.header.tile.width+"' height='"+rts.header.tile.height+"'></canvas>";
+				if (rts.bitmaps[i].info.isAnimated) tmp =
+					'<'+'span class="sph-rts-anim" title="Next:'+rts.bitmaps[i].info.nextTile+
+					(rts.bitmaps[rts.bitmaps[i].info.nextTile].info.nameLength>0?'/'+rts.bitmaps[rts.bitmaps[i].info.nextTile].info.name:'')+
+					', '+rts.bitmaps[i].info.delay+' frame(s)">'+
+					tmp+
+					"<"+"/span>";
+				_ct += tmp;
+			}
+			_ct = '<div class="sph-rts">'+_ct+'</div>';
+			$("#sandbox-rts").append($(_ct));
+			for (i=0;i<rts.header.numTiles;++i) {
+				_id = "rts-"+i;
+				_c = ncanvas(_id);
+				if (_c) {
+					_c.clear();
+					rts.bitmaps[i].blit(_c);
+				}
+				else console.log("Couldn't get a canvas for tile #"+i);
+			}
+			// ANIMATE (WIP)
+			function animateTiles() {
+				var fr = 1000/60;	// NTSC frame for now
+				function _anim(ts) {
+					$(".sph-rts-anim canvas").each(function(ndx,e){
+						var _r = $(this), _last = _r.data("last")||0;
+						if (ts-_last>fr*_r.data("delay")) {
+							_c = ncanvas(e.id);
+							if (_c) {
+								_c.clear();
+								var _n =_r.data("next");
+								rts.bitmaps[_n].blit(_c);
+								//console.log(e.id,"lastAnim",_last,"nextTile",_n);
+								_r.data("next",rts.bitmaps[_n].info.nextTile).
+									data("delay",rts.bitmaps[_n].info.delay);
+							}
+							_r.data("last",ts);
+						}
+					});
+					//console.log("animate",ts);
+					Sphere.util.animate.call(window,_anim);
+				}
+				Sphere.util.animate.call(window,_anim);
+			}
+			console.log("starting tile animation...");
+			animateTiles();
+		}
+	});
+	if (Sphere.Map&&"rmp" in smp) loadAsBinary(smp.rmp).done(function(d){
+		if (!d) alert("Couldn't get map file "+smp.rmp);
+		var rmp = Sphere.Map(d);
+		if (rmp!==null) {
+			$("#msg-rmp").text("Loaded map v"+rmp.header.version+" - "+rmp.header.numLayers+" layer(s) with "+rmp.header.numEntities+" entities, start=["+rmp.header.start.z+":"+rmp.header.start.x+","+rmp.header.start.y+"] facing "+Sphere.Enum.Directions[rmp.header.start.direction]);
+		}
+	});
 	if (Sphere.Spriteset&&"rss" in smp) loadAsBinary(smp.rss).done(function(d){
 		if (!d) alert("Couldn't get spriteset file "+smp.rss);
 		var rss = Sphere.Spriteset(d);
@@ -101,15 +192,62 @@ $(function(){
 			}
 			_ct = '<div class="sph-rss">'+_ct+'</div>';
 			$("#sandbox-rss").append($(_ct));
+			_ct = ""; var q, bi, z=-1; for (i=0;i<rss.header.numDirections;++i) {
+				_ct += "<div class='sph-rss-dir' id='rss-dir-"+i+"' title='"+rss.directions[i].name+"'>";
+				_ct += "<canvas class='sph-rss-dir-anim sph-rss-dir-"+i+"' id='rss-anim-"+i+"' width='"+rss.header.frame.width+"' height='"+rss.header.frame.height+"' data-dir='"+i+"' data-last='0' data-next='0' data-delay='0'></canvas>";
+				for (q=0;q<rss.directions[i].count;++q) {
+					bi = rss.directions[i].frames[q].index;
+					_ct += "<canvas class='sph-rss-"+bi+"' id='rss-d-"+(++z)+"' width='"+rss.bitmaps[bi].width+"' height='"+rss.bitmaps[bi].height+"'></canvas>";
+				}
+				_ct += "</div>";
+			}
+			$("#sandbox-rss").append($(_ct));
 			for (i=0;i<rss.header.numImages;++i) {
-				_id = "rss-"+i;
+				/*_id = "rss-"+i;
 				_c = ncanvas(_id);
 				if (_c) {
 					_c.clear();
 					rss.bitmaps[i].blit(_c);
 				}
-				else console.log("Couldn't get a canvas for spriteset img #"+i);
+				else console.log("Couldn't get a canvas for spriteset img #"+i);*/
+				// now fill directions; not all images actually get used
+				_cl = "sph-rss-"+i;
+				$("."+_cl).each(function(ndx,e){
+					_c = ncanvas(e.id);
+					if (_c) {
+						_c.clear();
+						rss.bitmaps[i].blit(_c);
+					}
+					else console.log("Couldn't get a canvas for spriteset img #"+i+" in direction");
+				});
 			}
+			// ANIMATE (WIP)
+			function animateDirections() {
+				var fr = 1000/60;	// NTSC frame for now
+				function _anim(ts) {
+					$("canvas.sph-rss-dir-anim").each(function(ndx,e){
+						var _r = $(this), _last = _r.data("last")||0, _d = _r.data("dir");
+						if (ts-_last>fr*_r.data("delay")) {
+							_c = ncanvas(e.id);
+							if (_c) {
+								_c.clear();
+								var _n =_r.data("next");
+								rss.bitmaps[rss.directions[_d].frames[_n].index].blit(_c);
+								//console.log(e.id,"lastAnim",_last,"nextTile",_n);
+								_r.
+									data("delay",rss.directions[_d].frames[_n++].delay).
+									data("next",_n%rss.directions[_d].count);
+							}
+							_r.data("last",ts);
+						}
+					});
+					//console.log("animate",ts);
+					Sphere.util.animate.call(window,_anim);
+				}
+				Sphere.util.animate.call(window,_anim);
+			}
+			console.log("starting spriteset animations...");
+			animateDirections();
 		}
 		else {
 			$("#msg-rss").text("Couldn't load spriteset "+smp.rss);

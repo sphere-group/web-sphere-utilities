@@ -117,9 +117,6 @@ Sphere.Spriteset = function(d) {
 				};
 				_bmp[q].data = Sphere.util.parseBitmap(o.data.substr(p,z));
 				p += z;
-				/*z = w*h; while (--z>-1) {
-					_bmp[q].data.push(Sphere.color(o.data.charCodeAt(p++),o.data.charCodeAt(p++),o.data.charCodeAt(p++),o.data.charCodeAt(p++)));
-				}*/
 			}
 		}
 		else if (o.version>1) {
@@ -154,7 +151,7 @@ Sphere.Spriteset = function(d) {
 		return p;
 	}
 	function _processDirections(o) {
-		var i, q, f, n, fi, fd;
+		var i, q, f, n, fi, fd, fr;
 		var p = o.offset;
 		if (o.version>2) {
 			_dir = [];
@@ -170,11 +167,46 @@ Sphere.Spriteset = function(d) {
 				while (--f>-1) {
 					fi = Sphere.util.parseLE(o.data.substr(p,2));
 					fd = Sphere.util.parseLE(o.data.substr(p+2,2));
+					fr = o.data.substr(p+4,4);
 					_dir[q].frames.push({
 						"index":fi,
-						"delay":fd
+						"delay":fd,
+						"reserved":fr
 					});
 					p += 8;
+				}
+			}
+		}
+		else if (o.version>1) {
+			_dir = [];
+			//var _dn = Sphere.Enum.Directions;
+			var w, h;
+			i = _hdr.numDirections; q= -1; y = -1; while (--i>-1) {
+				f = Sphere.util.parseLE(o.data.substr(p,2));
+				fr = o.data.substr(p+2,62);
+				p += 64;
+				_dir[++q] = {
+					"name":q<8?Sphere.Enum.Directions[q]:"extra "+q,
+					"count":f,
+					"frames":[],
+					"reserved":fr
+				};
+				while (--f>-1) {
+					w = Sphere.util.parseLE(o.data.substr(p,2))||_hdr.frame.width;
+					h = Sphere.util.parseLE(o.data.substr(p+2,2))||_hdr.frame.height;
+					z = (w*h)<<2;
+					fd = Sphere.util.parseLE(o.data.substr(p+4,2));
+					fr = o.data.substr(p+6,26);
+					fi = Sphere.util.parseBitmap(o.data.substr(p+32,z));
+					_dir[q].frames.push({
+						"delay":fd,
+						"index":++y,
+						"width":w,
+						"height":h,
+						"blit":Sphere.util.blitRGBA,
+						"data":fi
+					});
+					p += 32+z;
 				}
 			}
 		}
@@ -206,10 +238,14 @@ Sphere.Spriteset = function(d) {
 				"offset":p
 			});
 		}
-		/*else if (_hdr.version>1) {
-			_processDirections(d,_hdr.version);
+		else if (_hdr.version>1) {
+			p = _processDirections({
+				"version":_hdr.version,
+				"data":d,
+				"offset":p
+			});
 		}
-		else {
+		/*else {
 			_processDirections(d,_hdr.version);
 		}*/
 		_ret = {

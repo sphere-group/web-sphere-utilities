@@ -175,11 +175,26 @@ $(function(){
 			animateTiles();
 		}
 	});
+	function _drawMap(rmp) {
+		$("#msg-rmp").text("Loaded map v"+rmp.header.version+" - "+rmp.header.numLayers+" layer(s) with "+rmp.header.numEntities+" entities, start=["+rmp.header.start.z+":"+rmp.header.start.x+","+rmp.header.start.y+"] facing "+Sphere.Enum.Directions[rmp.header.start.direction]);
+		console.log(
+			"drawMap",
+			"v"+rmp.header.version,
+			rmp.header.numStrings+" string(s)",
+			rmp.strings,
+			rmp.header.numLayers+" layer(s)",
+			rmp.layers,
+			rmp.header.numEntities+" entities",
+			rmp.entities,
+			rmp.header.numZones+" zone(s)",
+			rmp.zones,
+			 "start=["+rmp.header.start.z+":"+rmp.header.start.x+","+rmp.header.start.y+"] facing "+Sphere.Enum.Directions[rmp.header.start.direction]);
+	}
 	if (Sphere.Map&&"rmp" in smp) loadAsBinary(smp.rmp).done(function(d){
 		if (!d) alert("Couldn't get map file "+smp.rmp);
 		var rmp = Sphere.Map(d);
 		if (rmp!==null) {
-			$("#msg-rmp").text("Loaded map v"+rmp.header.version+" - "+rmp.header.numLayers+" layer(s) with "+rmp.header.numEntities+" entities, start=["+rmp.header.start.z+":"+rmp.header.start.x+","+rmp.header.start.y+"] facing "+Sphere.Enum.Directions[rmp.header.start.direction]);
+			_drawMap(rmp);
 		}
 	});
 	if (Sphere.Spriteset&&"rss" in smp) loadAsBinary(smp.rss).done(function(d){

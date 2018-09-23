@@ -163,6 +163,7 @@ Sphere.Map = function(d) {
 	function _processEntities() {}
 	function _processZones() {}
 	if (d.substr(0,4)===".rmp") {
+		var _n = 0;
 		_hdr.version = Sphere.util.parseLE(d.substr(4,2));
 		if (_hdr.version>0) {
 			//// HEADER
@@ -179,7 +180,7 @@ Sphere.Map = function(d) {
 			_hdr.numZones = Sphere.util.parseLE(d.substr(19,2));
 			_hdr.reserved = d.substr(21,235);
 			//// STRINGS
-			var _n = 256;
+			_n = 256;
 			for (var i=0, l=_hdr.numStrings; i<l; ++i) {
 				var _len = Sphere.util.parseLE(d.substr(_n,2));
 				_n += 2;
@@ -321,6 +322,11 @@ byte reserved[4];
 string function;		// script to be executed when the zone is activated
 
 ****/
+			}
+			if (!_ts&&""!=_str[0]) {
+				if (Sphere.Tileset) {
+					_ts = Sphere.Tileset(d.substr(_n));
+				}
 			}
 		}
 		else {

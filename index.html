@@ -56,6 +56,12 @@
 .sph-ws canvas.sph-ws-6	{position:absolute; bottom:0;}
 .sph-ws canvas.sph-ws-7	{position:relative;}
 /*.sph-ws canvas.sph-ws-8	{position:absolute; z-index:0;}*/
+
+
+.rmp-layer	{margin:1em auto; padding:0; list-style:none; line-height:1; font-size:10px;}
+.rmp-layer:before	{}
+.rmp-layer li	{display:inline-block; width:16px; height:16px; overflow:hidden; float:left;}
+.rmp-layer li.layer-row	{clear:left;}
 </style>
 </head>
 <body>
@@ -176,7 +182,6 @@ $(function(){
 		}
 	});
 	function _drawMap(rmp) {
-		$("#msg-rmp").text("Loaded map v"+rmp.header.version+" - "+rmp.header.numLayers+" layer(s) with "+rmp.header.numEntities+" entities, start=["+rmp.header.start.z+":"+rmp.header.start.x+","+rmp.header.start.y+"] facing "+Sphere.Enum.Directions[rmp.header.start.direction]);
 		console.log(
 			"drawMap",
 			"v"+rmp.header.version,
@@ -188,7 +193,24 @@ $(function(){
 			rmp.entities,
 			rmp.header.numZones+" zone(s)",
 			rmp.zones,
-			 "start=["+rmp.header.start.z+":"+rmp.header.start.x+","+rmp.header.start.y+"] facing "+Sphere.Enum.Directions[rmp.header.start.direction]);
+			"start=["+
+				rmp.header.start.z+":"+
+				rmp.header.start.x+","+
+				rmp.header.start.y+
+			"] facing "+
+			Sphere.Enum.Directions[rmp.header.start.direction],
+			rmp.tileset
+		);
+		var mtxt = "";
+		for (var l=0,_l=rmp.layers.length; l<_l; ++l) {
+			var tmp = "";
+			for (var i=0,n=rmp.layers[l].tiles.length; i<n; ++i) {
+				tmp += "<li class='"+(0===(i%rmp.layers[l].width)?'layer-row':'')+"'>"+rmp.layers[l].tiles[i]+"</li>";
+			}
+			mtxt += "<ul class='rmp-layer sph-cf' data-name='"+rmp.layers[l].name+"' data-cols='"+rmp.layers[l].width+"' data-rows='"+rmp.layers[l].height+"'>"+tmp+"</ul>\n";
+		}
+		$("#sandbox-rmp").html(mtxt);
+		$("#msg-rmp").append("Loaded map v"+rmp.header.version+" - "+rmp.header.numLayers+" layer(s) with "+rmp.header.numEntities+" entities, start=["+rmp.header.start.z+":"+rmp.header.start.x+","+rmp.header.start.y+"] facing "+Sphere.Enum.Directions[rmp.header.start.direction]);
 	}
 	if (Sphere.Map&&"rmp" in smp) loadAsBinary(smp.rmp).done(function(d){
 		if (!d) alert("Couldn't get map file "+smp.rmp);

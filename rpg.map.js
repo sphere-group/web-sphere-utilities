@@ -182,14 +182,17 @@ Sphere.Map = function(d) {
 			//// STRINGS
 			_n = 256;
 			for (var i=0, l=_hdr.numStrings; i<l; ++i) {
-				var _len = Sphere.util.parseLE(d.substr(_n,2));
-				_n += 2;
-				var _s = d.substr(_n,_len);
-				_n += _len;
-				_str.push({
+				//var _len = Sphere.util.parseLE(d.substr(_n,2));
+				//_n += 2;
+				var tmp = Sphere.util.parseString(d.substr(_n));
+				//var _s = d.substr(_n,_len);
+				//_n += _len;
+				_str.push(tmp);
+				_n += 2+tmp.length;
+				/*_str.push({
 					"length":_n,
 					"data":_s||""
-				});
+				});*/
 			}
 			//// LAYERS
 			for (var i=0, l=_hdr.numLayers; i<l; ++i) {
@@ -323,7 +326,7 @@ string function;		// script to be executed when the zone is activated
 
 ****/
 			}
-			if (!_ts&&""!=_str[0]) {
+			if (!_ts&&""==_str[0]) {
 				if (Sphere.Tileset) {
 					_ts = Sphere.Tileset(d.substr(_n));
 				}
